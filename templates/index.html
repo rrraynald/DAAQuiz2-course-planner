@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Prerequisite Planner - ITS Informatika</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/vendor/vis-network.min.js"></script>
+    <link href="/static/vendor/vis-network.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-layout">
+    <!-- Header -->
+    <header class="app-header">
+        <h1><span>Course</span> Prerequisite Planner</h1>
+        <span class="subtitle">DAA Group Project · Teknik Informatika ITS · Topological Sort · BFS · DFS</span>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h3>Focus Track</h3>
+        <select id="track-select"></select>
+
+        <h3>Electives</h3>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer">
+            <input type="checkbox" id="electives-toggle"> Include all electives
+        </label>
+
+        <h3>Completed Courses</h3>
+        <div class="completed-section">
+            <input type="text" class="completed-search" id="completed-search"
+                   placeholder="Search courses...">
+            <div class="completed-list" id="completed-list"></div>
+            <div class="completed-tags" id="completed-tags"></div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="tab-plan">Semester Plan</button>
+            <button class="tab-btn" data-tab="tab-graph">Prerequisite Graph</button>
+            <button class="tab-btn" data-tab="tab-query">Course Query</button>
+            <button class="tab-btn" data-tab="tab-algo">Algorithms</button>
+        </div>
+
+        <!-- Tab 1: Semester Plan -->
+        <div class="tab-content active" id="tab-plan">
+            <div id="plan-area">
+                <div class="loading"><div class="spinner"></div>Loading...</div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Graph -->
+        <div class="tab-content" id="tab-graph">
+            <div id="graph-container"></div>
+            <div class="legend" style="margin-top:10px">
+                <span><span class="legend-dot" style="background:#a6e3a1"></span> Early Sem</span>
+                <span><span class="legend-dot" style="background:#f9e2af"></span> Mid Sem</span>
+                <span><span class="legend-dot" style="background:#f38ba8"></span> Late Sem</span>
+                <span><span class="legend-dot" style="background:#cba6f7"></span> Final</span>
+                <span><span class="legend-dot" style="background:#45475a"></span> Completed</span>
+            </div>
+        </div>
+
+        <!-- Tab 3: Course Query -->
+        <div class="tab-content" id="tab-query">
+            <div class="query-select-row">
+                <select id="query-select"></select>
+            </div>
+            <div id="query-area">
+                <div class="banner info">Select a course above to analyze its prerequisites and unlocks.</div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Algorithms -->
+        <div class="tab-content" id="tab-algo">
+            <div class="algo-section">
+                <h3>1. Topological Sort: Kahn's Algorithm (BFS)</h3>
+                <p>Generates a valid ordering of courses respecting all prerequisites. Each BFS "layer"
+                   corresponds to one semester; courses in the same layer can be taken simultaneously.</p>
+                <pre>def topological_sort_kahn(courses, prerequisites):
+    in_degree = calculate_in_degrees(courses, prerequisites)
+    queue = [c for c in courses if in_degree[c] == 0]
+    result = []
+
+    while queue:
+        course = queue.pop(0)
+        result.append(course)
+        for dependent in get_dependents(course):
+            in_degree[dependent] -= 1
+            if in_degree[dependent] == 0:
+                queue.append(dependent)
+
+    if len(result) != len(courses):
+        return None  # Cycle detected!
+    return result</pre>
+                <span class="complexity">Time: O(V + E)</span>
+            </div>
+
+            <div class="algo-section">
+                <h3>2. Cycle Detection: DFS with 3-Color Marking</h3>
+                <p>Detects circular dependencies using DFS. Each node is colored WHITE (unvisited),
+                   GRAY (in progress), or BLACK (finished). A GRAY-to-GRAY edge means a cycle.</p>
+                <pre>def detect_cycle_dfs(courses):
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color = {c: WHITE for c in courses}
+
+    def dfs(node):
+        color[node] = GRAY
+        for neighbor in get_dependents(node):
+            if color[neighbor] == GRAY:
+                return True  # Cycle found!
+            if color[neighbor] == WHITE:
+                if dfs(neighbor):
+                    return True
+        color[node] = BLACK
+        return False
+
+    for course in courses:
+        if color[course] == WHITE:
+            if dfs(course):
+                return True
+    return False</pre>
+                <span class="complexity">Time: O(V + E)</span>
+            </div>
+
+            <div class="algo-section">
+                <h3>3. Ancestor &amp; Descendant Queries: BFS</h3>
+                <p><strong>Ancestor Query (Reverse BFS):</strong> Finds all courses that must be completed
+                   before a target. Traverses prerequisite edges backward.<br>
+                   <strong>Descendant Query (Forward BFS):</strong> Finds all courses unlocked by completing
+                   a given course. Traverses dependency edges forward.</p>
+                <span class="complexity">Time: O(V + E) each</span>
+            </div>
+
+            <div class="algo-section">
+                <h3>4. Track Filtering: BFS Ancestor Collection</h3>
+                <p>When a student selects a concentration (e.g., AI/ML), collects all tagged courses
+                   then BFS backward through the reverse adjacency list to gather all prerequisite
+                   ancestors. The union forms a completable subgraph for the semester planner.</p>
+                <span class="complexity">Time: O(V + E)</span>
+            </div>
+
+            <div class="algo-section">
+                <h3>Summary</h3>
+                <table class="algo-table">
+                    <thead>
+                        <tr><th>Algorithm</th><th>Technique</th><th>Purpose</th><th>Complexity</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Semester Planner</td><td>Kahn's (BFS)</td><td>Generate valid semester plan</td><td>O(V + E)</td></tr>
+                        <tr><td>Cycle Detection</td><td>DFS 3-Color</td><td>Find circular dependencies</td><td>O(V + E)</td></tr>
+                        <tr><td>Ancestor Query</td><td>Reverse BFS</td><td>Find all prerequisites</td><td>O(V + E)</td></tr>
+                        <tr><td>Descendant Query</td><td>Forward BFS</td><td>Find all unlocked courses</td><td>O(V + E)</td></tr>
+                        <tr><td>Track Filter</td><td>BFS Ancestor Collection</td><td>Filter by concentration</td><td>O(V + E)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
