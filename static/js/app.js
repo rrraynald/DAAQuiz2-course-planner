@@ -131,7 +131,20 @@ function renderCompletedTags() {
 // ──────────────────────────────────────────────
 async function refreshPlan() {
     const planArea = document.getElementById("plan-area");
-    planArea.innerHTML = '<div class="loading"><div class="spinner"></div>Generating plan...</div>';
+
+    // Preserve scroll position + focused-input identity so updating a per-semester
+    // SKS cap doesn't snap the page to the top.
+    const scroller = document.querySelector(".main-content") || document.scrollingElement;
+    const scrollTop = scroller ? scroller.scrollTop : 0;
+    const winScrollY = window.scrollY;
+    const active = document.activeElement;
+    const focusedSem = (active && active.classList && active.classList.contains("sem-sks-cap"))
+        ? active.dataset.sem : null;
+
+    // Reserve current height so the spinner doesn't collapse the layout mid-fetch.
+    const prevHeight = planArea.offsetHeight;
+    if (prevHeight) planArea.style.minHeight = prevHeight + "px";
+    planArea.innerHTML = '<div class="loading"><div class="spinner"></div>Generating plan</div>';
 
     const [planRes, cycleRes] = await Promise.all([
         fetch("/api/plan", {
@@ -219,6 +232,7 @@ async function refreshPlan() {
     }
 
     planArea.innerHTML = html;
+    planArea.style.minHeight = "";
 
     planArea.querySelectorAll(".sem-sks-cap").forEach(input => {
         input.addEventListener("change", e => {
@@ -233,6 +247,14 @@ async function refreshPlan() {
             refreshPlan();
         });
     });
+
+    // Restore scroll position + refocus the input the user was editing.
+    if (scroller) scroller.scrollTop = scrollTop;
+    if (winScrollY) window.scrollTo(0, winScrollY);
+    if (focusedSem) {
+        const next = planArea.querySelector(`.sem-sks-cap[data-sem="${focusedSem}"]`);
+        if (next) next.focus({ preventScroll: true });
+    }
 }
 
 // ──────────────────────────────────────────────
