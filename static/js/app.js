@@ -241,6 +241,42 @@ async function refreshPlan() {
 let network = null;
 let subgraphNetwork = null;
 
+function themeColors() {
+    const s = getComputedStyle(document.documentElement);
+    const v = (name, fallback) => (s.getPropertyValue(name).trim() || fallback);
+    return {
+        depth: [
+            v("--graph-d0", "#a6e3a1"),
+            v("--graph-d1", "#89b4fa"),
+            v("--graph-d2", "#cba6f7"),
+            v("--graph-d3", "#f38ba8"),
+            v("--graph-d4", "#fab387"),
+            v("--graph-d5", "#f9e2af"),
+            v("--graph-d6", "#94e2d5"),
+            v("--graph-d7", "#f2cdcd"),
+        ],
+        done: v("--graph-done", "#45475a"),
+        prereq: v("--graph-prereq", "#585b70"),
+        edge: v("--graph-edge", "#585b70"),
+        edgeHi: v("--graph-edge-hi", "#f9e2af"),
+        nodeBorder: v("--graph-node-border", "#585b70"),
+        nodeBorderDone: v("--graph-node-border-done", "#6c7086"),
+        nodeHi: v("--graph-node-hi", "#f9e2af"),
+        nodeHiBorder: v("--graph-node-hi-border", "#fab387"),
+        nodeText: v("--graph-node-text", "#1e1e2e"),
+        nodeTextDone: v("--graph-node-text-done", "#a6adc8"),
+        tooltipBg: v("--graph-tooltip-bg", "#1e1e2e"),
+        tooltipBorder: v("--graph-tooltip-border", "#45475a"),
+        tooltipTitle: v("--graph-tooltip-title", "#f9e2af"),
+        tooltipText: v("--graph-tooltip-text", "#cdd6f4"),
+        tooltipMeta: v("--graph-tooltip-meta", "#89b4fa"),
+        tooltipMuted: v("--graph-tooltip-muted", "#a6adc8"),
+        center: v("--graph-center", "#f9e2af"),
+        ancestor: v("--graph-ancestor", "#89b4fa"),
+        descendant: v("--graph-descendant", "#a6e3a1"),
+    };
+}
+
 async function loadGraph() {
     const container = document.getElementById("graph-container");
     container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading graph...</div>';
@@ -267,10 +303,8 @@ async function loadGraph() {
 
     try {
 
-    const depthColors = [
-        "#a6e3a1", "#89b4fa", "#cba6f7", "#f38ba8",
-        "#fab387", "#f9e2af", "#94e2d5", "#f2cdcd",
-    ];
+    const T = themeColors();
+    const depthColors = T.depth;
 
     // Calculate depth via BFS — O(V+E) with adjacency list
     const inDeg = {};
@@ -316,15 +350,15 @@ async function loadGraph() {
         const isDone = completed.has(n.id);
         const isPrereq = currentTrack !== "all" && !n.is_track;
 
-        if (isDone) bg = "#45475a";
-        else if (isPrereq) bg = "#585b70";
+        if (isDone) bg = T.done;
+        else if (isPrereq) bg = T.prereq;
 
         const tooltip = document.createElement("div");
-        tooltip.style.cssText = "padding:8px 12px;background:#1e1e2e;border:1px solid #45475a;border-radius:6px;font-family:monospace;font-size:12px;max-width:260px;line-height:1.6";
-        tooltip.innerHTML = `<b style="color:#f9e2af">${n.id}</b><br>
-            <span style="color:#cdd6f4">${n.name}</span><br>
-            <span style="color:#89b4fa">${n.sks} SKS · ${n.tracks ? n.tracks.join(", ") : ""}</span><br>
-            <span style="color:#a6adc8">Prereqs: ${n.prerequisites && n.prerequisites.length ? n.prerequisites.join(", ") : "None"}</span>`;
+        tooltip.style.cssText = `padding:10px 14px;background:${T.tooltipBg};border:1px solid ${T.tooltipBorder};border-radius:8px;font-family:'Geist Mono',monospace;font-size:12px;max-width:280px;line-height:1.65;box-shadow:0 12px 32px -8px rgba(0,0,0,0.35)`;
+        tooltip.innerHTML = `<b style="color:${T.tooltipTitle}">${n.id}</b><br>
+            <span style="color:${T.tooltipText}">${n.name}</span><br>
+            <span style="color:${T.tooltipMeta}">${n.sks} SKS · ${n.tracks ? n.tracks.join(", ") : ""}</span><br>
+            <span style="color:${T.tooltipMuted}">Prereqs: ${n.prerequisites && n.prerequisites.length ? n.prerequisites.join(", ") : "None"}</span>`;
 
         return {
             id: n.id,
@@ -333,11 +367,11 @@ async function loadGraph() {
             shape: "box",
             color: {
                 background: bg,
-                border: isDone ? "#6c7086" : "#585b70",
-                highlight: { background: "#f9e2af", border: "#fab387" },
-                hover: { background: bg, border: "#f9e2af" },
+                border: isDone ? T.nodeBorderDone : T.nodeBorder,
+                highlight: { background: T.nodeHi, border: T.nodeHiBorder },
+                hover: { background: bg, border: T.nodeHi },
             },
-            font: { color: isDone ? "#a6adc8" : "#1e1e2e", size: 11, face: "monospace" },
+            font: { color: isDone ? T.nodeTextDone : T.nodeText, size: 11, face: "Geist Mono, monospace" },
             margin: 8,
             borderWidth: 1,
             borderWidthSelected: 2,
@@ -352,7 +386,7 @@ async function loadGraph() {
         from: e.from,
         to: e.to,
         arrows: { to: { enabled: true, scaleFactor: 0.6 } },
-        color: { color: "#585b70", highlight: "#f9e2af", hover: "#f9e2af" },
+        color: { color: T.edge, highlight: T.edgeHi, hover: T.edgeHi },
         width: 1,
         smooth: { type: "cubicBezier", forceDirection: "vertical", roundness: 0.4 },
     })));
@@ -448,12 +482,13 @@ async function onQueryChange() {
     html += `</div></div>`;
 
     // Subgraph
-    html += `<h4 style="margin-top:24px">Dependency Subgraph</h4>`;
+    const TC = themeColors();
+    html += `<h4 style="margin-top:24px">Dependency subgraph</h4>`;
     html += `<div id="subgraph-container"></div>`;
     html += `<div class="legend">
-        <span><span class="legend-dot" style="background:#f9e2af"></span> Selected</span>
-        <span><span class="legend-dot" style="background:#89b4fa"></span> Prerequisites</span>
-        <span><span class="legend-dot" style="background:#a6e3a1"></span> Unlocked</span>
+        <span><span class="legend-dot" style="background:${TC.center}"></span> Selected</span>
+        <span><span class="legend-dot" style="background:${TC.ancestor}"></span> Prerequisites</span>
+        <span><span class="legend-dot" style="background:${TC.descendant}"></span> Unlocked</span>
     </div>`;
 
     area.innerHTML = html;
@@ -475,26 +510,28 @@ function renderSubgraph(centerCode, ancestors, descendants) {
         const c = allCourses.find(x => x.code === code);
         if (!c) continue;
 
+        const T = themeColors();
         let color, size;
-        if (code === centerCode) { color = "#f9e2af"; size = 28; }
-        else if (ancestorCodes.has(code)) { color = "#89b4fa"; size = 18; }
-        else { color = "#a6e3a1"; size = 18; }
+        if (code === centerCode) { color = T.center; size = 28; }
+        else if (ancestorCodes.has(code)) { color = T.ancestor; size = 18; }
+        else { color = T.descendant; size = 18; }
 
         nodeData.push({
             id: code,
             label: `${code}\n${c.name}`,
             color: { background: color, border: color },
-            font: { color: "#1e1e2e", size: 11 },
+            font: { color: T.nodeText, size: 11, face: "Geist Mono, monospace" },
             size,
         });
     }
 
+    const TE = themeColors();
     const edgeData = [];
     for (const c of allCourses) {
         if (!allCodes.has(c.code)) continue;
         for (const prereq of c.prerequisites) {
             if (allCodes.has(prereq)) {
-                edgeData.push({ from: prereq, to: c.code, arrows: "to", color: { color: "#585b70" }, width: 1.5 });
+                edgeData.push({ from: prereq, to: c.code, arrows: "to", color: { color: TE.edge }, width: 1.5 });
             }
         }
     }

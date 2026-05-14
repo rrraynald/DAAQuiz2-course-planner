@@ -3,83 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Prerequisite Planner - ITS Informatika</title>
+    <meta name="description" content="Graph-based course prerequisite planner for ITS Informatika — topological sort, BFS, DFS.">
+    <meta name="theme-color" content="#0f1419">
+    <title>Atelier — Course prerequisite planner · ITS Informatika</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,400;9..144,500;9..144,600;9..144,700&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="/static/css/style.css">
     <script src="/static/vendor/vis-network.min.js"></script>
     <link href="/static/vendor/vis-network.min.css" rel="stylesheet">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23E8B14A'/%3E%3Cpath d='M9 22V10h3.5l3.5 8 3.5-8H23v12h-2.5v-7l-3 7h-2l-3-7v7H9z' fill='%230f1419'/%3E%3C/svg%3E">
 </head>
 <body>
+
+<a href="#main" class="skip-link">Skip to content</a>
+
+<div class="grain" aria-hidden="true"></div>
 
 <div class="app-layout">
     <!-- Header -->
     <header class="app-header">
-        <h1><span>Course</span> Prerequisite Planner</h1>
-        <span class="subtitle">DAA Group Project · Teknik Informatika ITS · Topological Sort · BFS · DFS</span>
+        <div class="brand">
+            <a class="brand-mark" href="#" aria-label="Atelier home">
+                <span class="mark-glyph">A</span>
+                <span class="mark-dot"></span>
+            </a>
+            <div class="brand-text">
+                <h1>
+                    <span class="brand-eyebrow">Atelier</span>
+                    <span class="brand-title">A study in <em>prerequisite</em> graphs</span>
+                </h1>
+                <p class="subtitle">
+                    <span class="dot-sep">DAA</span>
+                    <span class="dot-sep">Teknik Informatika ITS</span>
+                    <span>Kurikulum 2023</span>
+                </p>
+            </div>
+        </div>
+        <div class="header-meta">
+            <span class="pill pill-live"><span class="pulse"></span> 81 courses · 8 tracks</span>
+            <span class="pill pill-mono">v1.0</span>
+        </div>
     </header>
 
     <!-- Sidebar -->
-    <aside class="sidebar">
-        <h3>Focus Track</h3>
-        <select id="track-select"></select>
+    <aside class="sidebar" aria-label="Planner controls">
+        <div class="sidebar-inner">
+            <section class="side-section">
+                <div class="side-heading">
+                    <span class="side-num">01</span>
+                    <h3>Focus track</h3>
+                </div>
+                <p class="side-hint">Pick a concentration to filter the plan and graph.</p>
+                <select id="track-select" aria-label="Focus track"></select>
+            </section>
 
-        <h3>Electives</h3>
-        <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer">
-            <input type="checkbox" id="electives-toggle"> Include all electives
-        </label>
+            <section class="side-section">
+                <div class="side-heading">
+                    <span class="side-num">02</span>
+                    <h3>Electives</h3>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="electives-toggle">
+                    <span class="toggle-track" aria-hidden="true"><span class="toggle-thumb"></span></span>
+                    <span class="toggle-text">
+                        <span class="toggle-label">Include all electives</span>
+                        <span class="toggle-hint">Adds non-mandatory courses sem 5–7</span>
+                    </span>
+                </label>
+            </section>
 
-        <h3>Completed Courses</h3>
-        <div class="completed-section">
-            <input type="text" class="completed-search" id="completed-search"
-                   placeholder="Search courses...">
-            <div class="completed-list" id="completed-list"></div>
-            <div class="completed-tags" id="completed-tags"></div>
+            <section class="side-section">
+                <div class="side-heading">
+                    <span class="side-num">03</span>
+                    <h3>Completed courses</h3>
+                </div>
+                <div class="completed-section">
+                    <div class="input-wrap">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"/>
+                            <path d="m20 20-3.5-3.5"/>
+                        </svg>
+                        <input type="text" class="completed-search" id="completed-search" placeholder="Search courses">
+                    </div>
+                    <div class="completed-list" id="completed-list"></div>
+                    <div class="completed-tags" id="completed-tags" aria-live="polite"></div>
+                </div>
+            </section>
+
+            <footer class="sidebar-footer">
+                <span class="footer-line"></span>
+                <p>Built with topological sort,<br>BFS, and DFS.</p>
+            </footer>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content">
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="tab-plan">Semester Plan</button>
-            <button class="tab-btn" data-tab="tab-graph">Prerequisite Graph</button>
-            <button class="tab-btn" data-tab="tab-query">Course Query</button>
-            <button class="tab-btn" data-tab="tab-algo">Algorithms</button>
-        </div>
+    <main class="main-content" id="main">
+        <nav class="tabs" aria-label="Planner views">
+            <button class="tab-btn active" data-tab="tab-plan">
+                <span class="tab-index">I</span>
+                <span class="tab-label">Plan</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-graph">
+                <span class="tab-index">II</span>
+                <span class="tab-label">Graph</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-query">
+                <span class="tab-index">III</span>
+                <span class="tab-label">Query</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-algo">
+                <span class="tab-index">IV</span>
+                <span class="tab-label">Algorithms</span>
+            </button>
+        </nav>
 
         <!-- Tab 1: Semester Plan -->
-        <div class="tab-content active" id="tab-plan">
+        <section class="tab-content active" id="tab-plan">
+            <header class="section-head">
+                <div class="section-eyebrow">Chapter I</div>
+                <h2>Your semester <em>itinerary</em></h2>
+                <p>A valid course ordering generated by Kahn's algorithm, respecting every prerequisite in the curriculum.</p>
+            </header>
             <div id="plan-area">
-                <div class="loading"><div class="spinner"></div>Loading...</div>
+                <div class="loading"><div class="spinner"></div>Composing your plan</div>
             </div>
-        </div>
+        </section>
 
         <!-- Tab 2: Graph -->
-        <div class="tab-content" id="tab-graph">
+        <section class="tab-content" id="tab-graph">
+            <header class="section-head">
+                <div class="section-eyebrow">Chapter II</div>
+                <h2>The <em>prerequisite</em> graph</h2>
+                <p>Each node is a course. Edges point from prerequisite to dependent. Hover any node for details.</p>
+            </header>
             <div id="graph-container"></div>
-            <div class="legend" style="margin-top:10px">
-                <span><span class="legend-dot" style="background:#a6e3a1"></span> Early Sem</span>
-                <span><span class="legend-dot" style="background:#f9e2af"></span> Mid Sem</span>
-                <span><span class="legend-dot" style="background:#f38ba8"></span> Late Sem</span>
-                <span><span class="legend-dot" style="background:#cba6f7"></span> Final</span>
-                <span><span class="legend-dot" style="background:#45475a"></span> Completed</span>
+            <div class="legend" role="list">
+                <span role="listitem"><span class="legend-dot" style="background:var(--graph-d0)"></span> Early semester</span>
+                <span role="listitem"><span class="legend-dot" style="background:var(--graph-d5)"></span> Mid semester</span>
+                <span role="listitem"><span class="legend-dot" style="background:var(--graph-d3)"></span> Late semester</span>
+                <span role="listitem"><span class="legend-dot" style="background:var(--graph-d2)"></span> Final</span>
+                <span role="listitem"><span class="legend-dot" style="background:var(--graph-done)"></span> Completed</span>
             </div>
-        </div>
+        </section>
 
         <!-- Tab 3: Course Query -->
-        <div class="tab-content" id="tab-query">
+        <section class="tab-content" id="tab-query">
+            <header class="section-head">
+                <div class="section-eyebrow">Chapter III</div>
+                <h2>Course <em>inquiry</em></h2>
+                <p>Inspect any course to see what it requires and what it eventually unlocks.</p>
+            </header>
             <div class="query-select-row">
-                <select id="query-select"></select>
+                <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 6h18M6 12h12M10 18h4"/>
+                    </svg>
+                    <select id="query-select" aria-label="Select a course to inspect"></select>
+                </div>
             </div>
             <div id="query-area">
                 <div class="banner info">Select a course above to analyze its prerequisites and unlocks.</div>
             </div>
-        </div>
+        </section>
 
         <!-- Tab 4: Algorithms -->
-        <div class="tab-content" id="tab-algo">
-            <div class="algo-section">
-                <h3>1. Topological Sort: Kahn's Algorithm (BFS)</h3>
-                <p>Generates a valid ordering of courses respecting all prerequisites. Each BFS "layer"
-                   corresponds to one semester; courses in the same layer can be taken simultaneously.</p>
+        <section class="tab-content" id="tab-algo">
+            <header class="section-head">
+                <div class="section-eyebrow">Chapter IV</div>
+                <h2>The <em>algorithms</em> behind the planner</h2>
+                <p>Every view in this app is powered by classic graph algorithms from the DAA syllabus.</p>
+            </header>
+
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">01</span>
+                    <div>
+                        <p class="algo-kicker">Topological sort</p>
+                        <h3>Kahn's algorithm, layered by BFS</h3>
+                    </div>
+                </header>
+                <p>Generates a valid ordering of courses respecting all prerequisites. Each BFS layer corresponds to one semester; courses in the same layer can be taken simultaneously.</p>
                 <pre>def topological_sort_kahn(courses, prerequisites):
     in_degree = calculate_in_degrees(courses, prerequisites)
     queue = [c for c in courses if in_degree[c] == 0]
@@ -94,15 +202,20 @@
                 queue.append(dependent)
 
     if len(result) != len(courses):
-        return None  # Cycle detected!
+        return None  # cycle detected
     return result</pre>
-                <span class="complexity">Time: O(V + E)</span>
-            </div>
+                <span class="complexity">Time · O(V + E)</span>
+            </article>
 
-            <div class="algo-section">
-                <h3>2. Cycle Detection: DFS with 3-Color Marking</h3>
-                <p>Detects circular dependencies using DFS. Each node is colored WHITE (unvisited),
-                   GRAY (in progress), or BLACK (finished). A GRAY-to-GRAY edge means a cycle.</p>
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">02</span>
+                    <div>
+                        <p class="algo-kicker">Cycle detection</p>
+                        <h3>DFS with three-color marking</h3>
+                    </div>
+                </header>
+                <p>Detects circular dependencies using DFS. Each node is colored white (unvisited), gray (in progress), or black (finished). A gray-to-gray edge means a cycle.</p>
                 <pre>def detect_cycle_dfs(courses):
     WHITE, GRAY, BLACK = 0, 1, 2
     color = {c: WHITE for c in courses}
@@ -111,7 +224,7 @@
         color[node] = GRAY
         for neighbor in get_dependents(node):
             if color[neighbor] == GRAY:
-                return True  # Cycle found!
+                return True  # cycle found
             if color[neighbor] == WHITE:
                 if dfs(neighbor):
                     return True
@@ -123,42 +236,58 @@
             if dfs(course):
                 return True
     return False</pre>
-                <span class="complexity">Time: O(V + E)</span>
-            </div>
+                <span class="complexity">Time · O(V + E)</span>
+            </article>
 
-            <div class="algo-section">
-                <h3>3. Ancestor &amp; Descendant Queries: BFS</h3>
-                <p><strong>Ancestor Query (Reverse BFS):</strong> Finds all courses that must be completed
-                   before a target. Traverses prerequisite edges backward.<br>
-                   <strong>Descendant Query (Forward BFS):</strong> Finds all courses unlocked by completing
-                   a given course. Traverses dependency edges forward.</p>
-                <span class="complexity">Time: O(V + E) each</span>
-            </div>
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">03</span>
+                    <div>
+                        <p class="algo-kicker">Reachability</p>
+                        <h3>Ancestor &amp; descendant queries via BFS</h3>
+                    </div>
+                </header>
+                <p><strong>Ancestor query (reverse BFS).</strong> Finds all courses that must be completed before a target, traversing prerequisite edges backward.<br>
+                   <strong>Descendant query (forward BFS).</strong> Finds all courses unlocked by completing a given course, traversing dependency edges forward.</p>
+                <span class="complexity">Time · O(V + E) each</span>
+            </article>
 
-            <div class="algo-section">
-                <h3>4. Track Filtering: BFS Ancestor Collection</h3>
-                <p>When a student selects a concentration (e.g., AI/ML), collects all tagged courses
-                   then BFS backward through the reverse adjacency list to gather all prerequisite
-                   ancestors. The union forms a completable subgraph for the semester planner.</p>
-                <span class="complexity">Time: O(V + E)</span>
-            </div>
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">04</span>
+                    <div>
+                        <p class="algo-kicker">Track filtering</p>
+                        <h3>BFS ancestor collection on tagged nodes</h3>
+                    </div>
+                </header>
+                <p>When a student selects a concentration (e.g. AI/ML), the planner collects all tagged courses then BFS backward through the reverse adjacency list to gather every prerequisite ancestor. The union forms a completable subgraph for the semester planner.</p>
+                <span class="complexity">Time · O(V + E)</span>
+            </article>
 
-            <div class="algo-section">
-                <h3>Summary</h3>
-                <table class="algo-table">
-                    <thead>
-                        <tr><th>Algorithm</th><th>Technique</th><th>Purpose</th><th>Complexity</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Semester Planner</td><td>Kahn's (BFS)</td><td>Generate valid semester plan</td><td>O(V + E)</td></tr>
-                        <tr><td>Cycle Detection</td><td>DFS 3-Color</td><td>Find circular dependencies</td><td>O(V + E)</td></tr>
-                        <tr><td>Ancestor Query</td><td>Reverse BFS</td><td>Find all prerequisites</td><td>O(V + E)</td></tr>
-                        <tr><td>Descendant Query</td><td>Forward BFS</td><td>Find all unlocked courses</td><td>O(V + E)</td></tr>
-                        <tr><td>Track Filter</td><td>BFS Ancestor Collection</td><td>Filter by concentration</td><td>O(V + E)</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">05</span>
+                    <div>
+                        <p class="algo-kicker">At a glance</p>
+                        <h3>Summary of techniques</h3>
+                    </div>
+                </header>
+                <div class="table-wrap">
+                    <table class="algo-table">
+                        <thead>
+                            <tr><th>Algorithm</th><th>Technique</th><th>Purpose</th><th>Complexity</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Semester planner</td><td>Kahn's (BFS)</td><td>Generate valid semester plan</td><td>O(V + E)</td></tr>
+                            <tr><td>Cycle detection</td><td>DFS 3-color</td><td>Find circular dependencies</td><td>O(V + E)</td></tr>
+                            <tr><td>Ancestor query</td><td>Reverse BFS</td><td>Find all prerequisites</td><td>O(V + E)</td></tr>
+                            <tr><td>Descendant query</td><td>Forward BFS</td><td>Find all unlocked courses</td><td>O(V + E)</td></tr>
+                            <tr><td>Track filter</td><td>BFS ancestor collection</td><td>Filter by concentration</td><td>O(V + E)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
     </main>
 </div>
 
