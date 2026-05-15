@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Graph-based course prerequisite planner for ITS Informatika — topological sort, BFS, DFS.">
+    <meta name="description" content="Graph-based course prerequisite planner for ITS Informatika - topological sort, BFS, DFS.">
     <meta name="theme-color" content="#0f1419">
-    <title>Pathway — Course prerequisite planner · ITS Informatika</title>
+    <title>Pathway - Course prerequisite planner · ITS Informatika</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,7 +44,7 @@
             </div>
         </div>
         <div class="header-meta">
-            <span class="pill pill-live"><span class="pulse"></span> 81 courses · 8 tracks</span>
+            <span class="pill pill-live"><span class="pulse"></span> 109 courses · 8 tracks</span>
             <span class="pill pill-mono">v1.0</span>
         </div>
     </header>
@@ -119,6 +119,10 @@
             <button class="tab-btn" data-tab="tab-algo">
                 <span class="tab-index">IV</span>
                 <span class="tab-label">Algorithms</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-howto">
+                <span class="tab-index">V</span>
+                <span class="tab-label">How To Use</span>
             </button>
         </nav>
 
@@ -286,6 +290,152 @@
                         </tbody>
                     </table>
                 </div>
+            </article>
+        </section>
+
+        <!-- Tab 5: How To Use -->
+        <section class="tab-content" id="tab-howto">
+            <header class="section-head">
+                <div class="section-eyebrow">Chapter V</div>
+                <h2>How to <em>use</em> this planner</h2>
+                <p>Pathway helps you plan your ITS Informatika degree path - 144 SKS across 8 semesters - using graph algorithms to enforce prerequisites and visualize dependencies.</p>
+            </header>
+
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">01</span>
+                    <div>
+                        <p class="algo-kicker">Sidebar - Focus Track</p>
+                        <h3>Choose a concentration to filter the plan</h3>
+                    </div>
+                </header>
+                <p>Select a track from the <strong>Focus Track</strong> dropdown to filter the semester plan and graph to courses relevant to that concentration. Available tracks:</p>
+                <ul class="howto-list">
+                    <li><strong>All Courses</strong> - shows all 109 courses with no track filter.</li>
+                    <li><strong>Core (Wajib)</strong> - mandatory foundation courses, semesters 1–4 plus Tugas Akhir.</li>
+                    <li><strong>AI &amp; Machine Learning</strong> - machine learning, deep learning, computer vision, and related electives.</li>
+                    <li><strong>Cybersecurity</strong> - information security, network security, application security, digital forensics.</li>
+                    <li><strong>Networking &amp; Distributed Systems</strong> - computer networks, wireless, IoT, cloud computing.</li>
+                    <li><strong>Software Engineering</strong> - software design, construction, quality, and project management.</li>
+                    <li><strong>Game Development</strong> - computer graphics, game engines, animation, and simulation.</li>
+                    <li><strong>Data Science</strong> - statistics, data mining, big data, time series, and applied math.</li>
+                    <li><strong>Database &amp; Information Systems</strong> - database management, distributed databases, enterprise systems.</li>
+                </ul>
+                <p>When a track is selected, <strong>all mandatory courses (semesters 1–4) are always shown</strong> alongside the track's elective courses.</p>
+            </article>
+
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">02</span>
+                    <div>
+                        <p class="algo-kicker">Sidebar - Electives Toggle</p>
+                        <h3>Show all elective courses in the plan</h3>
+                    </div>
+                </header>
+                <p>When no track is selected, the plan only shows mandatory courses by default. Turn on <strong>Include all electives</strong> to display all available elective courses for semesters 5, 6, and 7 - every course offered in each semester - with no SKS cap applied to those semesters.</p>
+            </article>
+
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">03</span>
+                    <div>
+                        <p class="algo-kicker">Sidebar - Completed Courses</p>
+                        <h3>Mark courses you have already taken</h3>
+                    </div>
+                </header>
+                <p>Search and check courses you have completed. Completed courses:</p>
+                <ul class="howto-list">
+                    <li>Remain visible in their semester card, marked with a <strong>✓</strong> and strikethrough.</li>
+                    <li>Still count toward the semester's SKS total.</li>
+                    <li>Are treated as prerequisites satisfied, so dependent courses appear unlocked in subsequent semesters.</li>
+                    <li>Can be quickly removed by clicking the tag in the <strong>tags row</strong> below the list.</li>
+                </ul>
+            </article>
+
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">04</span>
+                    <div>
+                        <p class="algo-kicker">Tab I - Semester Plan</p>
+                        <h3>Reading and customising your plan</h3>
+                    </div>
+                </header>
+                <p>The plan is generated by a modified Kahn's topological sort that respects prerequisite order, semester type (odd/even), and SKS caps.</p>
+                <ul class="howto-list">
+                    <li><strong>Semester header</strong> - shows total SKS and course count for that semester.</li>
+                    <li><strong>Max SKS input</strong> - change the per-semester SKS cap directly in the header of each mandatory semester (1–4). The plan re-generates immediately.</li>
+                    <li><strong>Course chips</strong> - each chip shows the course code, name, and SKS.
+                        When a track is active, <code>[T]</code> = track elective, <code>[P]</code> = required prerequisite.</li>
+                    <li><strong>Completed courses</strong> - appear at the bottom of their semester with a strikethrough.</li>
+                    <li><strong>Elective semesters (5–7)</strong> - show all available courses with no SKS cap. The header displays "All elective courses shown".</li>
+                </ul>
+                <div class="howto-callout">
+                    <strong>Graduation requirement:</strong> 144 SKS total - 126 SKS wajib (mandatory) + 18 SKS bidang keahlian (elective concentration). Must complete Tugas Akhir (5 SKS) and Kerja Praktik.
+                </div>
+            </article>
+
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">05</span>
+                    <div>
+                        <p class="algo-kicker">Tab I - Add Course</p>
+                        <h3>Manually add courses to a semester</h3>
+                    </div>
+                </header>
+                <p>Each semester card from <strong>semester 3 onwards</strong> has a <code>+ Add Course</code> button at the bottom. Clicking it opens a picker overlay:</p>
+                <ul class="howto-list">
+                    <li>Only courses from the <strong>same odd/even parity</strong> as the target semester are shown - odd-numbered semesters only list odd-origin courses, even only even.</li>
+                    <li>Courses already shown anywhere in the plan (or marked completed) are excluded.</li>
+                    <li>Use the <strong>search box</strong> in the picker to filter by course code or name.</li>
+                    <li>Each item shows the course's original semester number for reference.</li>
+                    <li>Added courses appear with a <strong>dashed border</strong> and include a <code>×</code> remove button that appears on hover.</li>
+                    <li>Their SKS is added to the semester's total immediately.</li>
+                </ul>
+            </article>
+
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">06</span>
+                    <div>
+                        <p class="algo-kicker">Tab II - Graph</p>
+                        <h3>Exploring the prerequisite graph</h3>
+                    </div>
+                </header>
+                <p>The graph visualises the entire curriculum as a Directed Acyclic Graph (DAG). Edges point from a prerequisite to its dependent course.</p>
+                <ul class="howto-list">
+                    <li><strong>Node colour</strong> - reflects topological depth (early semesters are green/blue, later semesters shift toward orange/gold).</li>
+                    <li><strong>Completed nodes</strong> - shown in dark grey.</li>
+                    <li><strong>Hover</strong> over any node to see its name, SKS, prerequisites, and tracks.</li>
+                    <li><strong>Track filter</strong> - changing the sidebar track updates the graph to show only relevant nodes; prerequisite ancestors are shown in a muted colour.</li>
+                    <li>The graph is interactive: <strong>drag</strong> nodes, <strong>scroll</strong> to zoom, <strong>click</strong> to select.</li>
+                </ul>
+            </article>
+
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">07</span>
+                    <div>
+                        <p class="algo-kicker">Tab III - Query</p>
+                        <h3>Inspect any course's dependencies</h3>
+                    </div>
+                </header>
+                <p>Select any course from the dropdown to see:</p>
+                <ul class="howto-list">
+                    <li><strong>Ancestors</strong> - all courses you must complete before taking the selected course (reverse BFS). Total prerequisite SKS shown.</li>
+                    <li><strong>Descendants</strong> - all courses unlocked by completing the selected course (forward BFS). Total unlocked SKS shown.</li>
+                    <li><strong>Subgraph</strong> - a mini vis-network showing the selected course (gold), its ancestors (blue), and its descendants (green).</li>
+                </ul>
+            </article>
+
+            <article class="algo-section">
+                <header class="algo-head">
+                    <span class="algo-number">08</span>
+                    <div>
+                        <p class="algo-kicker">Tab IV - Algorithms</p>
+                        <h3>The graph algorithms powering the app</h3>
+                    </div>
+                </header>
+                <p>Tab IV explains the five algorithms used: <strong>Kahn's topological sort</strong> (semester planner), <strong>DFS 3-color cycle detection</strong>, <strong>reverse BFS</strong> (ancestor query), <strong>forward BFS</strong> (descendant query), and <strong>BFS ancestor collection</strong> (track filtering). Each runs in O(V + E) time on the 109-course DAG.</p>
             </article>
         </section>
     </main>

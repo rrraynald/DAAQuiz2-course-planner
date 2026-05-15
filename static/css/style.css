@@ -1,11 +1,11 @@
 /* ──────────────────────────────────────────────
-   Atelier — a study in graphs
+   Atelier - a study in graphs
    Deep midnight + saffron + serif display
    ────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    /* Surfaces — deep midnight palette */
+    /* Surfaces - deep midnight palette */
     --bg-primary: #0f1419;
     --bg-secondary: #131921;
     --bg-tertiary: #1a212c;
@@ -19,14 +19,14 @@
     --border-soft: #1f2733;
     --border-strong: #3a4558;
 
-    /* Text — slightly warm whites */
+    /* Text - slightly warm whites */
     --text-primary: #f0ead8;
     --text-secondary: #c8c0a8;
     --text-muted: #8d8775;
     --text-dim: #5d5b54;
     --text-ink: #0f1419;
 
-    /* Accents — saffron is the hero, all else supports */
+    /* Accents - saffron is the hero, all else supports */
     --accent: #E8B14A;
     --accent-soft: #f0c46f;
     --accent-deep: #b8841c;
@@ -37,14 +37,14 @@
     --sky: #6ea8c5;
     --lilac: #b89bc7;
 
-    /* Status — desaturated, never screaming */
+    /* Status - desaturated, never screaming */
     --green: #88a886;
     --yellow: #d4b66a;
     --red: #d97a6c;
     --orange: #d9956c;
     --purple: #b89bc7;
 
-    /* Graph colors — palette unified around the saffron family + secondary hues
+    /* Graph colors - palette unified around the saffron family + secondary hues
        Read by app.js via CSS variable lookup */
     --graph-d0: #88a886;
     --graph-d1: #6ea8c5;
@@ -74,13 +74,13 @@
     --graph-ancestor: #6ea8c5;
     --graph-descendant: #88a886;
 
-    /* Radii — varied, not uniform */
+    /* Radii - varied, not uniform */
     --radius-xs: 4px;
     --radius-sm: 8px;
     --radius: 14px;
     --radius-lg: 22px;
 
-    /* Shadows — tinted with midnight hue, not pure black */
+    /* Shadows - tinted with midnight hue, not pure black */
     --shadow-sm: 0 1px 0 rgba(15, 20, 25, 0.4);
     --shadow: 0 12px 32px -12px rgba(8, 10, 14, 0.85), 0 2px 6px -2px rgba(8, 10, 14, 0.4);
     --shadow-lg: 0 32px 64px -20px rgba(8, 10, 14, 0.9), 0 6px 16px -6px rgba(8, 10, 14, 0.5);
@@ -118,7 +118,7 @@ body {
     overflow-x: hidden;
 }
 
-/* Ambient warmth — saffron glow plus subtle horizon */
+/* Ambient warmth - saffron glow plus subtle horizon */
 body::before {
     content: "";
     position: fixed;
@@ -131,7 +131,7 @@ body::before {
     z-index: 0;
 }
 
-/* Grain — breaks digital flatness */
+/* Grain - breaks digital flatness */
 .grain {
     position: fixed;
     inset: 0;
@@ -172,7 +172,7 @@ body::before {
 }
 
 /* ──────────────────────────────────────────────
-   Header — editorial masthead
+   Header - editorial masthead
    ────────────────────────────────────────────── */
 .app-header {
     grid-column: 1 / -1;
@@ -609,7 +609,7 @@ body::before {
 }
 
 /* ──────────────────────────────────────────────
-   Tabs — segmented pill
+   Tabs - segmented pill
    ────────────────────────────────────────────── */
 .tabs {
     display: flex;
@@ -677,7 +677,7 @@ body::before {
 }
 
 /* ──────────────────────────────────────────────
-   Metrics — editorial stat blocks
+   Metrics - editorial stat blocks
    ────────────────────────────────────────────── */
 .metrics {
     display: grid;
@@ -727,7 +727,7 @@ body::before {
 }
 
 /* ──────────────────────────────────────────────
-   Banner — quiet, informational
+   Banner - quiet, informational
    ────────────────────────────────────────────── */
 .banner {
     border-radius: var(--radius-sm);
@@ -1056,7 +1056,7 @@ body::before {
 }
 
 /* ──────────────────────────────────────────────
-   Graph Container — inset "screen"
+   Graph Container - inset "screen"
    ────────────────────────────────────────────── */
 #graph-container {
     width: 100%;
@@ -1356,6 +1356,43 @@ body::before {
     color: var(--accent);
     font-size: 0.82rem;
 }
+
+/* ──────────────────────────────────────────────
+   How To Use
+   ────────────────────────────────────────────── */
+.howto-list {
+    margin: 12px 0 4px 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+.howto-list li {
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+}
+.howto-list li strong { color: var(--text-primary); font-weight: 500; }
+.howto-list li code {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    background: var(--bg-inset);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--accent);
+}
+.howto-callout {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(232, 177, 74, 0.3);
+    border-radius: var(--radius);
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+}
+.howto-callout strong { color: var(--accent); font-weight: 500; }
 
 /* ──────────────────────────────────────────────
    Query selector row
