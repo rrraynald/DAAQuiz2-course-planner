@@ -288,7 +288,8 @@ class CurriculumGraph:
             completed = set()
 
         track_courses = self.get_track_courses(track)
-        remaining = track_courses - completed
+        required_courses = {code for code, c in self.courses.items() if c.required}
+        remaining = (track_courses | required_courses) - completed
 
         in_degree = defaultdict(int)
         for code in remaining:
