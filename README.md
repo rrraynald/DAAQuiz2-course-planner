@@ -3,6 +3,8 @@
 A web app that helps Informatics ITS students plan their semester journey.
 Enter which courses you've completed, pick a concentration track, and Pathway generates a valid semester-by-semester study plan — automatically respecting every prerequisite in the ITS Informatics 2023 Curriculum.
 
+**Live site:** https://web-production-dfe7a.up.railway.app
+
 ---
 
 ## What it does
