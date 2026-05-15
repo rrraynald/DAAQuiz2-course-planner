@@ -133,6 +133,8 @@ class CurriculumGraph:
 
         while available or deferred:
             effective_max = (per_semester_sks or {}).get(output_sem_count + 1, max_sks)
+            if current_sem_num >= 5:
+                effective_max = 9999
 
             semester = []
             semester_sks = 0
@@ -306,6 +308,8 @@ class CurriculumGraph:
 
         while available or deferred:
             effective_max = (per_semester_sks or {}).get(output_sem_count + 1, max_sks)
+            if current_sem_num >= 5:
+                effective_max = 9999
 
             semester = []
             semester_sks = 0
