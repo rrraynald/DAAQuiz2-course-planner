@@ -7,12 +7,16 @@
 // State
 // ──────────────────────────────────────────────
 let allCourses = [];
+let allCoursesMap = {};
 let allTracks = {};
 let completed = new Set();
 let currentTrack = "core";
 let maxSks = 24;
 let includeElectives = false;
 let perSemesterSks = {};
+let manualCourses = {};      // actual_sem_num → Set of course codes
+let lastPlanSemesters = [];  // last plan result, used by picker
+let activePicker = null;
 
 // ──────────────────────────────────────────────
 // Initialization
@@ -30,6 +34,8 @@ async function loadInitialData() {
         fetch("/api/tracks").then(r => r.json()),
     ]);
     allCourses = coursesRes;
+    allCoursesMap = {};
+    for (const c of allCourses) allCoursesMap[c.code] = c;
     allTracks = tracksRes;
 
     populateTrackSelector();
@@ -146,6 +152,7 @@ async function refreshPlan() {
     if (prevHeight) planArea.style.minHeight = prevHeight + "px";
     planArea.innerHTML = '<div class="loading"><div class="spinner"></div>Generating plan</div>';
 
+    closePicker();
     const [planRes, cycleRes] = await Promise.all([
         fetch("/api/plan", {
             method: "POST",
@@ -174,9 +181,10 @@ async function refreshPlan() {
     if (currentTrack !== "all") {
         html += `<div class="banner info">Showing plan for <strong>${allTracks[currentTrack]}</strong> track (includes prerequisite courses)</div>`;
     } else {
-        html += `<div class="banner info">Showing mandatory courses only. Semesters 5-6 are elective slots - select a concentration track above to fill them.</div>`;
+        html += `<div class="banner info">Showing mandatory courses only. Semesters 5-7 are elective slots - select a concentration track above to fill them.</div>`;
     }
 
+    lastPlanSemesters = planRes.semesters;
     const semesters = planRes.semesters;
     if (semesters.length === 0) {
         html += `<div class="banner success">All courses completed!</div>`;
@@ -215,17 +223,43 @@ async function refreshPlan() {
             </span>`;
         }
 
-        html += `<div class="semester-card">
-            <div class="semester-header">
-                <span class="sem-title">Semester ${sem.semester}</span>
-                <span class="sem-sks">${sem.sks} SKS · ${sem.courses.length} MK</span>
-                <label class="sks-cap-label">Max SKS: <input
+        // Manual courses
+        const manualSet = manualCourses[sem.actual_sem_num] || new Set();
+        for (const code of manualSet) {
+            const mc = allCoursesMap[code];
+            if (!mc) continue;
+            chips += `<span class="course-chip manual">
+                <span class="chip-code">${mc.code}</span> ${mc.name} (${mc.sks} SKS)
+                <button class="chip-remove" data-code="${mc.code}" data-sem="${sem.actual_sem_num}" title="Remove">×</button>
+            </span>`;
+        }
+
+        let manualSks = 0;
+        for (const code of manualSet) {
+            if (allCoursesMap[code]) manualSks += allCoursesMap[code].sks;
+        }
+        const totalSks = sem.sks + manualSks;
+        const totalCourseCount = sem.courses.length + manualSet.size;
+        const capControl = sem.is_elective
+            ? `<span class="sks-cap-label elective-label">All elective courses shown</span>`
+            : `<label class="sks-cap-label">Max SKS: <input
                     type="number" class="sem-sks-cap"
                     data-sem="${sem.semester}"
                     value="${sem.sks_cap}"
-                    min="8" max="36" step="1"></label>
+                    min="8" max="36" step="1"></label>`;
+
+        const addBtn = sem.actual_sem_num >= 3
+            ? `<button class="add-course-btn" data-sem="${sem.actual_sem_num}">+ Add Course</button>`
+            : "";
+
+        html += `<div class="semester-card${sem.is_elective ? ' elective-sem' : ''}">
+            <div class="semester-header">
+                <span class="sem-title">Semester ${sem.semester}</span>
+                <span class="sem-sks">${totalSks} SKS · ${totalCourseCount} MK</span>
+                ${capControl}
             </div>
             <div class="semester-courses">${chips}</div>
+            ${addBtn ? `<div class="semester-add-row">${addBtn}</div>` : ""}
         </div>`;
     }
 
@@ -251,6 +285,26 @@ async function refreshPlan() {
         });
     });
 
+    planArea.querySelectorAll(".add-course-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            openCoursePicker(parseInt(btn.dataset.sem), btn);
+        });
+    });
+
+    planArea.querySelectorAll(".chip-remove").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const code = btn.dataset.code;
+            const semNum = parseInt(btn.dataset.sem);
+            if (manualCourses[semNum]) {
+                manualCourses[semNum].delete(code);
+                if (manualCourses[semNum].size === 0) delete manualCourses[semNum];
+            }
+            refreshPlan();
+        });
+    });
+
     // Restore scroll position + refocus the input the user was editing.
     if (scroller) scroller.scrollTop = scrollTop;
     if (winScrollY) window.scrollTo(0, winScrollY);
@@ -258,6 +312,105 @@ async function refreshPlan() {
         const next = planArea.querySelector(`.sem-sks-cap[data-sem="${focusedSem}"]`);
         if (next) next.focus({ preventScroll: true });
     }
+}
+
+// ──────────────────────────────────────────────
+// Course Picker (Add Course overlay)
+// ──────────────────────────────────────────────
+function closePicker() {
+    if (activePicker) {
+        activePicker.remove();
+        activePicker = null;
+    }
+}
+
+function openCoursePicker(actualSemNum, anchorEl) {
+    closePicker();
+
+    // Collect every code already placed in any semester (plan + manual) + completed
+    const takenCodes = new Set(completed);
+    for (const sem of lastPlanSemesters) {
+        for (const c of sem.courses) takenCodes.add(c.code);
+    }
+    for (const [, codeSet] of Object.entries(manualCourses)) {
+        codeSet.forEach(c => takenCodes.add(c));
+    }
+
+    const parity = actualSemNum % 2;
+    const available = Object.values(allCoursesMap)
+        .filter(c => c.semester_num % 2 === parity && !takenCodes.has(c.code))
+        .sort((a, b) => a.semester_num - b.semester_num || a.code.localeCompare(b.code));
+
+    if (available.length === 0) {
+        const tip = document.createElement("div");
+        tip.className = "course-picker";
+        tip.innerHTML = `<div class="picker-empty">All courses for this semester are already shown.</div>`;
+        positionPicker(tip, anchorEl);
+        activePicker = tip;
+        tip.addEventListener("click", e => e.stopPropagation());
+        setTimeout(() => document.addEventListener("click", closePicker, { once: true }), 0);
+        return;
+    }
+
+    const picker = document.createElement("div");
+    picker.className = "course-picker";
+    picker.innerHTML = `
+        <input type="text" class="picker-search" placeholder="Search by code or name…" autocomplete="off">
+        <div class="picker-list">
+            ${available.map(c => `
+                <div class="picker-item" data-code="${c.code}">
+                    <span class="picker-code">${c.code}</span>
+                    <span class="picker-name">${c.name}</span>
+                    <span class="picker-sks">${c.sks} SKS · Sem ${c.semester_num}</span>
+                </div>
+            `).join("")}
+        </div>`;
+
+    positionPicker(picker, anchorEl);
+    picker.addEventListener("click", e => e.stopPropagation());
+    document.body.appendChild(picker);
+    activePicker = picker;
+    picker.querySelector(".picker-search").focus();
+
+    picker.querySelector(".picker-search").addEventListener("input", e => {
+        const q = e.target.value.toLowerCase();
+        picker.querySelectorAll(".picker-item").forEach(item => {
+            const match = item.dataset.code.toLowerCase().includes(q) ||
+                          item.querySelector(".picker-name").textContent.toLowerCase().includes(q);
+            item.style.display = match ? "" : "none";
+        });
+    });
+
+    picker.querySelectorAll(".picker-item").forEach(item => {
+        item.addEventListener("click", () => {
+            const code = item.dataset.code;
+            if (!manualCourses[actualSemNum]) manualCourses[actualSemNum] = new Set();
+            manualCourses[actualSemNum].add(code);
+            closePicker();
+            refreshPlan();
+        });
+    });
+
+    setTimeout(() => document.addEventListener("click", closePicker, { once: true }), 0);
+}
+
+function positionPicker(el, anchorEl) {
+    const rect = anchorEl.getBoundingClientRect();
+    el.style.position = "fixed";
+    el.style.top = `${rect.bottom + 4}px`;
+    el.style.left = `${rect.left}px`;
+    document.body.appendChild(el);
+
+    // Flip up if it overflows viewport bottom
+    requestAnimationFrame(() => {
+        const elRect = el.getBoundingClientRect();
+        if (elRect.bottom > window.innerHeight - 8) {
+            el.style.top = `${rect.top - elRect.height - 4}px`;
+        }
+        if (elRect.right > window.innerWidth - 8) {
+            el.style.left = `${window.innerWidth - elRect.width - 8}px`;
+        }
+    });
 }
 
 // ──────────────────────────────────────────────
@@ -323,7 +476,7 @@ async function loadGraph() {
         return;
     }
 
-    // Clear spinner now — all errors below will be shown in container
+    // Clear spinner now - all errors below will be shown in container
     container.innerHTML = "";
 
     try {
@@ -331,7 +484,7 @@ async function loadGraph() {
     const T = themeColors();
     const depthColors = T.depth;
 
-    // Calculate depth via BFS — O(V+E) with adjacency list
+    // Calculate depth via BFS - O(V+E) with adjacency list
     const inDeg = {};
     const adjList = {};
     data.nodes.forEach(n => { inDeg[n.id] = 0; adjList[n.id] = []; });
@@ -353,7 +506,7 @@ async function loadGraph() {
         }
     }
 
-    // Assign x/y from depth — no physics needed
+    // Assign x/y from depth - no physics needed
     const depthGroups = {};
     data.nodes.forEach(n => {
         const d = depth[n.id] || 0;
