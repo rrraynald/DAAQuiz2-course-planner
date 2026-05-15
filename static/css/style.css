@@ -907,6 +907,37 @@ body::before {
     color: var(--text-secondary);
 }
 .course-chip.neutral:hover { color: var(--text-primary); border-color: var(--border); }
+.course-chip.manual {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    border-color: rgba(232, 177, 74, 0.25);
+    border-style: dashed;
+    color: var(--text-secondary);
+    gap: 6px;
+}
+.course-chip.manual:hover { border-color: rgba(232, 177, 74, 0.5); color: var(--text-primary); }
+.chip-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 0 2px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+    flex-shrink: 0;
+}
+.course-chip.manual:hover .chip-remove { opacity: 1; }
+.chip-remove:hover { color: var(--accent); }
+.course-chip.completed {
+    background: transparent;
+    border-color: var(--border-soft);
+    color: var(--text-muted);
+    opacity: 0.5;
+    text-decoration: line-through;
+    text-decoration-color: var(--text-muted);
+}
+.course-chip.completed:hover { opacity: 0.65; transform: none; }
 .chip-code {
     font-family: var(--mono);
     font-size: 0.72rem;

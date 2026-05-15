@@ -200,7 +200,10 @@ async function refreshPlan() {
         let chips = "";
         for (const c of sem.courses) {
             let cls, prefix;
-            if (currentTrack !== "all") {
+            if (c.is_completed) {
+                cls = "completed";
+                prefix = "✓ ";
+            } else if (currentTrack !== "all") {
                 cls = c.is_track ? "track" : "prereq";
                 prefix = c.is_track ? "[T] " : "[P] ";
             } else {

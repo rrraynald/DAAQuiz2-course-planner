@@ -40,6 +40,7 @@ def get_courses():
             "name": c.name,
             "sks": c.sks,
             "semester_type": c.semester_type,
+            "semester_num": c.semester_num,
             "prerequisites": c.prerequisites,
             "tracks": c.tracks,
         })
@@ -84,12 +85,39 @@ def plan_semesters():
                 "code": c.code,
                 "name": c.name,
                 "sks": c.sks,
+                "semester_num": c.semester_num,
                 "is_track": track_courses is not None and code in track_courses,
                 "tracks": c.tracks,
+                "is_completed": False,
             })
         sem_sks = sum(graph.courses[c].sks for c in sem)
         cap = (per_semester_sks or {}).get(i + 1, max_sks)
-        result.append({"semester": i + 1, "sks": sem_sks, "sks_cap": cap, "courses": courses})
+        is_elective = all(not graph.courses[c].required for c in sem)
+        actual_sem_num = min((graph.courses[c].semester_num for c in sem), default=i + 1)
+        result.append({"semester": i + 1, "actual_sem_num": actual_sem_num, "sks": sem_sks, "sks_cap": cap, "is_elective": is_elective, "courses": courses})
+
+    # Re-inject completed courses into their semester slots, marked as done
+    sem_num_to_idx = {}
+    for i, sem_data in enumerate(result):
+        for cd in sem_data["courses"]:
+            snum = graph.courses[cd["code"]].semester_num
+            sem_num_to_idx.setdefault(snum, i)
+
+    for code in sorted(completed):
+        c = graph.courses[code]
+        idx = sem_num_to_idx.get(c.semester_num)
+        if idx is None:
+            continue
+        result[idx]["courses"].append({
+            "code": c.code,
+            "name": c.name,
+            "sks": c.sks,
+            "semester_num": c.semester_num,
+            "is_track": track_courses is not None and code in track_courses,
+            "tracks": c.tracks,
+            "is_completed": True,
+        })
+        result[idx]["sks"] += c.sks
 
     return jsonify({"semesters": result, "track": track})
 
