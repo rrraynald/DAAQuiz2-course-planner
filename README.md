@@ -69,4 +69,4 @@ Built as a DAA (Design & Analysis of Algorithms) group project.
 - Jason Kumarkono
 - Christian Mikaxelo
 
-&copy; 2024 Teknik Informatika ITS. All rights reserved.
+&copy; 2026 Teknik Informatika ITS. All rights reserved.
